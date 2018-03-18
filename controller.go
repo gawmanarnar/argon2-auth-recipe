@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	_ "github.com/lib/pq"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -44,7 +45,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	hash := base64.StdEncoding.EncodeToString(unencodedHash)
 	salt := base64.StdEncoding.EncodeToString(unencodedSalt)
 
-	fmt.Println(credentials.Username)
-	fmt.Println(hash)
-	fmt.Println(salt)
+	_, err = s.DB.Query("INSERT INTO users (email, password, salt) VALUES ($1, $2, $3)", credentials.Username, hash, salt)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "")
+		return
+	}
+
+	fmt.Println("User created")
 }

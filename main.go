@@ -1,8 +1,10 @@
 package main
 
-func main() {
+var s *WebServer
 
-	s := WebServer{}
+func main() {
+	s = &WebServer{}
+
 	s.Init("admin", "hunter2", "auth-recipe")
 
 	s.Router.Get("/", Login)
