@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,11 +14,39 @@ import (
 type LoginCredentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Salt     string `json:"salt,omitempty"`
+}
+
+func (c *LoginCredentials) getCredentials(db *sql.DB) error {
+	row := db.QueryRow("SELECT email, password, salt FROM users WHERE email=$1", c.Username)
+	return row.Scan(&c.Username, &c.Password, &c.Salt)
 }
 
 // Login - http handler for user login
 func Login(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("welcome"))
+	credentials := &LoginCredentials{}
+	err := json.NewDecoder(r.Body).Decode(credentials)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "")
+		return
+	}
+
+	storedCredentials := LoginCredentials{Username: credentials.Username}
+	if err := storedCredentials.getCredentials(s.DB); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusUnauthorized, "")
+		default:
+			respondWithError(w, http.StatusInternalServerError, "")
+		}
+		return
+	}
+
+	if crypto.VerifyHash(credentials.Password, storedCredentials.Password, storedCredentials.Salt) {
+		respondWithJSON(w, http.StatusOK, "Login successful")
+	} else {
+		respondWithError(w, http.StatusUnauthorized, "")
+	}
 }
 
 // Register - http handler for user registration

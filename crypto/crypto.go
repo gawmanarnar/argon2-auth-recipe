@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
@@ -55,4 +56,21 @@ func Hash(password string) (string, string, error) {
 	salt := base64.StdEncoding.EncodeToString(unencodedSalt)
 
 	return hash, salt, nil
+}
+
+// VerifyHash - takes a password, a base64 encoded hash, and a base64 encoded salt
+// returns true if the password matches the hash
+func VerifyHash(password, hash, salt string) bool {
+	decodedHash, err := base64.StdEncoding.DecodeString(hash)
+	if err != nil {
+		return false
+	}
+
+	decodedSalt, err := base64.StdEncoding.DecodeString(salt)
+	if err != nil {
+		return false
+	}
+
+	testHash := argon2.Key([]byte(password), decodedSalt, timeCost, memoryCost, threads, keyLength)
+	return bytes.Equal(decodedHash, testHash)
 }

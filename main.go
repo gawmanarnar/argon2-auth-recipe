@@ -7,8 +7,8 @@ func main() {
 
 	s.Init("admin", "hunter2", "auth-recipe")
 
-	s.Router.Get("/", Login)
-	s.Router.Post("/", Register)
+	s.Router.Post("/login", Login)
+	s.Router.Post("/register", Register)
 
 	s.Run()
 }
