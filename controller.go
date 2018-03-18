@@ -27,7 +27,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	credentials := &LoginCredentials{}
 	err := json.NewDecoder(r.Body).Decode(credentials)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -35,17 +35,17 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if err := storedCredentials.getCredentials(s.DB); err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			respondWithError(w, http.StatusUnauthorized, "")
+			w.WriteHeader(http.StatusUnauthorized)
 		default:
-			respondWithError(w, http.StatusInternalServerError, "")
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
 
 	if crypto.VerifyHash(credentials.Password, storedCredentials.Password, storedCredentials.Salt) {
-		respondWithJSON(w, http.StatusOK, "Login successful")
+		w.WriteHeader(http.StatusOK)
 	} else {
-		respondWithError(w, http.StatusUnauthorized, "")
+		w.WriteHeader(http.StatusUnauthorized)
 	}
 }
 
@@ -53,19 +53,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 func Register(w http.ResponseWriter, r *http.Request) {
 	credentials := &LoginCredentials{}
 	if err := json.NewDecoder(r.Body).Decode(credentials); err != nil {
-		respondWithError(w, http.StatusBadRequest, "")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	hash, salt, err := crypto.Hash(credentials.Password)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	_, err = s.DB.Query("INSERT INTO users (email, password, salt) VALUES ($1, $2, $3)", credentials.Username, hash, salt)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
