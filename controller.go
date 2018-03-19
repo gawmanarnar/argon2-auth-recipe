@@ -10,6 +10,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var decoder *schema.Decoder
+
+func init() {
+	decoder = schema.NewDecoder()
+}
+
 // LoginCredentials - struct containing the users login credentials
 type LoginCredentials struct {
 	Email    string `json:"email"`
@@ -30,7 +36,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	credentials := &LoginCredentials{}
-	decoder := schema.NewDecoder()
 	if err := decoder.Decode(credentials, r.PostForm); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -62,7 +67,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	credentials := &LoginCredentials{}
-	decoder := schema.NewDecoder()
 	if err := decoder.Decode(credentials, r.PostForm); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
