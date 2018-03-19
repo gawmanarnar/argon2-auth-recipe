@@ -47,7 +47,7 @@ func Hash(password string) (string, string, error) {
 		return "", "", err
 	}
 
-	unencodedHash := argon2.Key([]byte(password), unencodedSalt, timeCost, memoryCost, threads, keyLength)
+	unencodedHash := argon2.IDKey([]byte(password), unencodedSalt, timeCost, memoryCost, threads, keyLength)
 	if didHashFail(unencodedHash) {
 		return "", "", errors.New("Hash failed")
 	}
@@ -71,6 +71,6 @@ func VerifyHash(password, hash, salt string) bool {
 		return false
 	}
 
-	testHash := argon2.Key([]byte(password), decodedSalt, timeCost, memoryCost, threads, keyLength)
+	testHash := argon2.IDKey([]byte(password), decodedSalt, timeCost, memoryCost, threads, keyLength)
 	return bytes.Equal(decodedHash, testHash)
 }
