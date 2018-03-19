@@ -12,7 +12,6 @@ func main() {
 	s.Router.Post("/login", Login)
 	s.Router.Post("/register", Register)
 
-	views.Compile()
 	s.Router.Get("/login", views.RenderLogin)
 
 	s.Run()

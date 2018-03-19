@@ -7,9 +7,7 @@ import (
 
 var loginTemplate *template.Template
 
-// Compile - compiles templates. This function needs to be called
-// before trying to execute any templates
-func Compile() {
+func init() {
 	var err error
 	loginTemplate, err = template.ParseFiles("views/templates/login.gohtml")
 	if err != nil {
