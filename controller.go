@@ -14,6 +14,7 @@ var decoder *schema.Decoder
 
 func init() {
 	decoder = schema.NewDecoder()
+	decoder.IgnoreUnknownKeys(true)
 }
 
 // LoginCredentials - struct containing the users login credentials
