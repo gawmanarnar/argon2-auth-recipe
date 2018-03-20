@@ -2,11 +2,10 @@ package crypto
 
 import (
 	"bytes"
-	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"io"
 
+	"github.com/gorilla/securecookie"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -27,29 +26,23 @@ func didHashFail(s []byte) bool {
 	return true
 }
 
-// generateSalt - generates a 32 byte salt
-func generateSalt() ([]byte, error) {
-	salt := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, salt)
-	if err != nil {
-		return salt, err
-	}
-
-	return salt, nil
-}
-
 // doHash - actually does the hashing
 func doHash(password, salt []byte) []byte {
-	return argon2.IDKey([]byte(password), salt, timeCost, memoryCost, threads, keyLength)
+	return argon2.IDKey(password, salt, timeCost, memoryCost, threads, keyLength)
+}
+
+// GenerateRandomKey - wraps gorilla/securecookie's GenerateRandomKey
+func GenerateRandomKey(length int) []byte {
+	return securecookie.GenerateRandomKey(length)
 }
 
 // Hash - generates the Argon2i hash of a given password
 // returns the hash and the salt that was used to create the hash
 // these values are base64 encoded
 func Hash(password string) (string, string, error) {
-	unencodedSalt, err := generateSalt()
-	if err != nil {
-		return "", "", err
+	unencodedSalt := GenerateRandomKey(32)
+	if unencodedSalt == nil {
+		return "", "", errors.New("Hash failed")
 	}
 
 	unencodedHash := doHash([]byte(password), unencodedSalt)
