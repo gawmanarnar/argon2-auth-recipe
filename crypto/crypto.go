@@ -38,6 +38,11 @@ func generateSalt() ([]byte, error) {
 	return salt, nil
 }
 
+// doHash - actually does the hashing
+func doHash(password, salt []byte) []byte {
+	return argon2.IDKey([]byte(password), salt, timeCost, memoryCost, threads, keyLength)
+}
+
 // Hash - generates the Argon2i hash of a given password
 // returns the hash and the salt that was used to create the hash
 // these values are base64 encoded
@@ -47,7 +52,7 @@ func Hash(password string) (string, string, error) {
 		return "", "", err
 	}
 
-	unencodedHash := argon2.IDKey([]byte(password), unencodedSalt, timeCost, memoryCost, threads, keyLength)
+	unencodedHash := doHash([]byte(password), unencodedSalt)
 	if didHashFail(unencodedHash) {
 		return "", "", errors.New("Hash failed")
 	}
@@ -71,6 +76,6 @@ func VerifyHash(password, hash, salt string) bool {
 		return false
 	}
 
-	testHash := argon2.IDKey([]byte(password), decodedSalt, timeCost, memoryCost, threads, keyLength)
+	testHash := doHash([]byte(password), decodedSalt)
 	return bytes.Equal(decodedHash, testHash)
 }
