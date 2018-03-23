@@ -16,6 +16,11 @@ const (
 	keyLength  = 64
 )
 
+var (
+	// ErrHashFailed - signaling a hashing failure
+	ErrHashFailed = errors.New("crypto: hash failed")
+)
+
 // didHashFail - checks to see if the hash is empty (all zeros)
 func didHashFail(s []byte) bool {
 	for _, v := range s {
@@ -42,12 +47,12 @@ func GenerateRandomKey(length int) []byte {
 func Hash(password string) (string, string, error) {
 	unencodedSalt := GenerateRandomKey(32)
 	if unencodedSalt == nil {
-		return "", "", errors.New("Hash failed")
+		return "", "", ErrHashFailed
 	}
 
 	unencodedHash := doHash([]byte(password), unencodedSalt)
 	if didHashFail(unencodedHash) {
-		return "", "", errors.New("Hash failed")
+		return "", "", ErrHashFailed
 	}
 
 	hash := base64.StdEncoding.EncodeToString(unencodedHash)
