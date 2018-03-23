@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gimmeasandwich/argon2-auth-recipe/crypto"
+	"github.com/gimmeasandwich/argon2-auth-recipe/middleware"
 	"github.com/gimmeasandwich/argon2-auth-recipe/views"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/csrf"
@@ -44,5 +45,5 @@ func (s *WebServer) Run() {
 	// Setup csrf protection
 	csrfMiddleware := csrf.Protect(crypto.GenerateRandomKey(32), csrf.Secure(false))
 
-	log.Fatal(http.ListenAndServe(":3000", csrfMiddleware(s.Router)))
+	log.Fatal(http.ListenAndServe(":3000", middleware.SecureHeaders(middleware.Logger(csrfMiddleware(s.Router)))))
 }
