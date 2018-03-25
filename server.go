@@ -40,6 +40,7 @@ func (s *WebServer) SetupRoutes() {
 	s.Sessions.Persist(true)
 
 	s.Router = chi.NewRouter()
+	s.Router.Get("/", views.RenderHome)
 	s.Router.Post("/login", Login)
 	s.Router.Post("/signup", Register)
 	s.Router.Get("/login", views.RenderLogin)
