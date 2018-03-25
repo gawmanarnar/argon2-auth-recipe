@@ -35,9 +35,9 @@ func (s *WebServer) SetupDB(user, password, dbname string) {
 
 // SetupRoutes - Initializes the routes for the application
 func (s *WebServer) SetupRoutes() {
-	sessionManager := scs.NewCookieManager(string(crypto.GenerateRandomKey(32)))
-	sessionManager.Lifetime(time.Hour * 24 * 30) // One month
-	sessionManager.Persist(true)
+	s.Sessions = scs.NewCookieManager(string(crypto.GenerateRandomKey(32)))
+	s.Sessions.Lifetime(time.Hour * 24 * 30) // One month
+	s.Sessions.Persist(true)
 
 	s.Router = chi.NewRouter()
 	s.Router.Post("/login", Login)
@@ -58,7 +58,7 @@ func (s *WebServer) Run() {
 // LoggedIn - helper function to determine if a user is logged in
 func (s *WebServer) LoggedIn(r *http.Request) (bool, error) {
 	session := s.Sessions.Load(r)
-	loggedIn, err := session.Exists("UserId")
+	loggedIn, err := session.Exists("UserID")
 
 	if err != nil {
 		return false, err

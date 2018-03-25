@@ -2,8 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gimmeasandwich/argon2-auth-recipe/crypto"
 	"github.com/gorilla/schema"
@@ -22,11 +22,12 @@ type LoginCredentials struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Salt     string `json:"salt,omitempty"`
+	ID       string `json:"id,omitempty"`
 }
 
 func (c *LoginCredentials) getCredentials(db *sql.DB) error {
-	row := db.QueryRow("SELECT email, password, salt FROM users WHERE email=$1", c.Email)
-	return row.Scan(&c.Email, &c.Password, &c.Salt)
+	row := db.QueryRow("SELECT email, password, salt, id FROM users WHERE email=$1", c.Email)
+	return row.Scan(&c.Email, &c.Password, &c.Salt, &c.ID)
 }
 
 // Login - http handler for user login
@@ -53,8 +54,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id, err := strconv.Atoi(storedCredentials.ID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	if crypto.VerifyHash(credentials.Password, storedCredentials.Password, storedCredentials.Salt) {
-		w.WriteHeader(http.StatusOK)
+		session := s.Sessions.Load(r)
+		err = session.PutInt(w, "UserID", id)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 	}
@@ -85,5 +100,5 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("User created")
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
