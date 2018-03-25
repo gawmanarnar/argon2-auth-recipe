@@ -66,6 +66,9 @@
     .secondary.pointing.menu .toc.item {
       display: none;
     }
+    .top.menu .ui.button {
+      margin-left: 0.5em;
+    }
     @media only screen and (max-width: 700px) {
       .ui.fixed.menu {
         display: none !important;
@@ -100,7 +103,7 @@
   $(document)
     .ready(function() {
       // fix menu when passed
-      $('.masthead')
+      $('.topheader')
         .visibility({
           once: false,
           onBottomPassed: function() {
@@ -122,15 +125,13 @@
 <body>
 
 <!-- Following Menu -->
-<div class="ui large top fixed hidden menu">
+<div class="ui large top fixed hidden borderless menu">
   <div class="ui container">
     <a href="/" class="active item">Home</a>
     <a href="/secrets" class="item">Secrets</a>
-    <div class="right menu">
-      <div class="item">
+    <div class="right item">
+      <div class="right menu">
         <a href="/login" class="ui button">Log in</a>
-      </div>
-      <div class="item">
         <a href="/signup" class="ui primary button">Sign Up</a>
       </div>
     </div>
@@ -149,7 +150,7 @@
 <div class="pusher">
   <div class="ui inverted vertical masthead center aligned segment">
 
-    <div class="ui container">
+    <div class="ui container topheader">
       <div class="ui large secondary inverted pointing menu">
         <a class="toc item">
           <i class="sidebar icon"></i>
@@ -168,7 +169,7 @@
         Argon2 Auth Recipe
       </h1>
       <h2>An example backend using Argon2 password hashing</h2>
-      <div class="ui huge primary button">Get Started<i class="right arrow icon"></i></div>
+      <a href="/signup" class="ui huge primary button">Get Started<i class="right arrow icon"></i></a>
     </div>
   </div>
 
