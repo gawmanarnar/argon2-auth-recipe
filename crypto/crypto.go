@@ -41,6 +41,16 @@ func GenerateRandomKey(length int) []byte {
 	return securecookie.GenerateRandomKey(length)
 }
 
+// ToBase64 - turns an unencoded []byte into a base64 encoded string
+func ToBase64(input []byte) string {
+	return base64.StdEncoding.EncodeToString(input)
+}
+
+// FromBase64 - converts a base64 encoded string into a unencoded []byte
+func FromBase64(input string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(input)
+}
+
 // Hash - generates the Argon2i hash of a given password
 // returns the hash and the salt that was used to create the hash
 // these values are base64 encoded
@@ -55,8 +65,8 @@ func Hash(password string) (string, string, error) {
 		return "", "", ErrHashFailed
 	}
 
-	hash := base64.StdEncoding.EncodeToString(unencodedHash)
-	salt := base64.StdEncoding.EncodeToString(unencodedSalt)
+	hash := ToBase64(unencodedHash)
+	salt := ToBase64(unencodedSalt)
 
 	return hash, salt, nil
 }
@@ -64,12 +74,12 @@ func Hash(password string) (string, string, error) {
 // VerifyHash - takes a password, a base64 encoded hash, and a base64 encoded salt
 // returns true if the password matches the hash
 func VerifyHash(password, hash, salt string) bool {
-	decodedHash, err := base64.StdEncoding.DecodeString(hash)
+	decodedHash, err := FromBase64(hash)
 	if err != nil {
 		return false
 	}
 
-	decodedSalt, err := base64.StdEncoding.DecodeString(salt)
+	decodedSalt, err := FromBase64(salt)
 	if err != nil {
 		return false
 	}

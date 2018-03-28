@@ -5,7 +5,7 @@ var s *WebServer
 func main() {
 	s = &WebServer{}
 
-	s.SetupDB("admin", "hunter2", "auth-recipe")
+	s.SetupDB()
 	s.SetupRoutes()
 
 	s.Run()

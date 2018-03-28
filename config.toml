@@ -1,0 +1,9 @@
+
+[postgres]
+  name = "auth-recipe"
+  password = "hunter2"
+  username = "admin"
+
+[secrets]
+  cookie = ""
+  csrf = ""

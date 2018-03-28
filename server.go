@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs"
-	"github.com/gimmeasandwich/argon2-auth-recipe/crypto"
+	"github.com/gimmeasandwich/argon2-auth-recipe/config"
 	"github.com/gimmeasandwich/argon2-auth-recipe/middleware"
 	"github.com/gimmeasandwich/argon2-auth-recipe/views"
 	"github.com/go-chi/chi"
@@ -24,8 +24,9 @@ type WebServer struct {
 }
 
 // SetupDB - Opens postgres database connection
-func (s *WebServer) SetupDB(user, password, dbname string) {
-	connectionString := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
+func (s *WebServer) SetupDB() {
+	connectionString := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
+		config.DB.Username, config.DB.Password, config.DB.Name)
 	var err error
 	s.DB, err = sql.Open("postgres", connectionString)
 	if err != nil {
@@ -35,23 +36,24 @@ func (s *WebServer) SetupDB(user, password, dbname string) {
 
 // SetupRoutes - Initializes the routes for the application
 func (s *WebServer) SetupRoutes() {
-	s.Sessions = scs.NewCookieManager(string(crypto.GenerateRandomKey(32)))
+	s.Sessions = scs.NewCookieManager(string(config.Secrets.GetDecodedCsrf()))
 	s.Sessions.Lifetime(time.Hour * 24 * 30) // One month
 	s.Sessions.Persist(true)
 
 	s.Router = chi.NewRouter()
 	s.Router.Get("/", views.RenderHome)
-	s.Router.Post("/login", Login)
-	s.Router.Post("/signup", Register)
 	s.Router.Get("/login", views.RenderLogin)
 	s.Router.Get("/signup", views.RenderSignup)
+
+	s.Router.Post("/login", Login)
+	s.Router.Post("/signup", Register)
 }
 
 // Run - starts the server
 func (s *WebServer) Run() {
 
 	// Setup csrf protection
-	csrfMiddleware := csrf.Protect(crypto.GenerateRandomKey(32), csrf.Secure(false))
+	csrfMiddleware := csrf.Protect(config.Secrets.GetDecodedCookie(), csrf.Secure(false))
 
 	log.Fatal(http.ListenAndServe(":3000", middleware.SecureHeaders(middleware.Logger(csrfMiddleware(s.Router)))))
 }
@@ -79,7 +81,7 @@ func (s *WebServer) RequireLogin(next http.Handler) http.Handler {
 		}
 
 		if !loggedIn {
-			http.Redirect(w, r, "/login", 302)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
